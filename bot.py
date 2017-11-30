@@ -31,6 +31,13 @@ def quit():
 def shutdown():
     pass
 
+def sendMsg(sock, msg):
+    # Send private message to Controller
+    sock.send(msg)
+
+def getMsg():
+    pass
+
 
 # GET COMMANDS FROM CONTROLLER
 def getCommand(conSocket):
