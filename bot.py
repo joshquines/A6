@@ -76,13 +76,13 @@ def sendPrivate(conNick, msg):
 
 # SEND MESSAGE TO IRC
 def sendMsg(sock, msg):
-    msg = msg.encode('utf-8', 'ignore')
+    msg = msg.encode('utf-8')
     sock.send(msg)
 
 
 # GET COMMANDS FROM CONTROLLER AKA READ IRC MESSAGES
 def getCommand(IRCSOCKET):
-    msg = IRCSOCKET.recv(1024).decode('utf-8', 'ignore').strip()
+    msg = IRCSOCKET.recv(1024).decode('utf-8').strip()
     if msg == "":
         return False
     else:

