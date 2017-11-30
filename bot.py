@@ -19,19 +19,19 @@ CONTROLLER_FLAG = True
 def getStatus():    
     return
 
-def attack():
+def cmdAttack():
     pass
 
-def move():
+def cmdMove():
     pass 
 
-def quit():
+def cmdQuit():
     pass 
 
-def shutdown():
+def cmdShutdown():
     pass
 
-def sendMsg(sock, msg):
+def sendPrivate(sock, msg):
     # Send private message to Controller
     sock.send(msg)
 
@@ -40,6 +40,7 @@ def getMsg():
 
 
 # GET COMMANDS FROM CONTROLLER
+# This might be the same as ircSocket since it's still reading the stuff from the IRC server
 def getCommand(conSocket):
     msg = conSocket.recv(1024).decode('utf-8', 'ignore').strip()
     return 
@@ -54,14 +55,14 @@ def commandHandler():
 
     if command == "status":
         print("Command: status")
-        status = getStatus()
+        cmdStatus = getStatus()
         print(str(status))
     elif command == "attack":
         try:
             host = command[1]
             port = command[2]
             print("Command: attack " + str(host) + " " + str(port))
-            attack(host, port)
+            cmdAttack(host, port)
         except:
             pass
     elif command == "move":
@@ -69,12 +70,12 @@ def commandHandler():
             host = command[1]
             port = command[2]
             channel = command[3]
-            move(host, port, channel)
+            cmdMove(host, port, channel)
             print("Command: move " + str(host) + " " + str(port) + " " + str(channel))
     elif command == "quit":
-        quit()
+        cmdQuit()
     elif command == "shutdown":
-        shutdown()
+        cmdShutdown()
 
 
 
