@@ -31,10 +31,18 @@ def cmdQuit():
 def cmdShutdown():
     pass
 
-def sendPrivate(sock, msg):
+# SEND PRIVATE MESSAGE TO CONTROLLER
+def sendPrivate(conName, msg):
     # Send private message to Controller
+    sock.send(ircSocket, "PRIVMSG " + conName + " :" + msg + "\n")
+    return
+
+# SEND MESSAGE TO IRC
+def sendMsg(sock, msg):
+    msg = msg.encode('utf-8', 'ignore')
     sock.send(msg)
 
+# GET MESSAGE FROM IRC
 def getMsg():
     pass
 
