@@ -82,8 +82,9 @@ def sendCommand(msg):
 def botHandler():
     global liveConnection
     while liveConnection:
-        pass
-        # Do stuff 
+        # Gotta do the readable thing here
+        readable, writable, exceptable = select.select([IRCSOCKET, sys.stdin],[sys.stdout],[])
+        for x in readable:
 
 
 # CONNECT TO IRC SERVER CHANNEL

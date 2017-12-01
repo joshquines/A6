@@ -125,8 +125,9 @@ def getCommand(IRCSOCKET):
 
 # DO COMMANDS
 def commandHandler():
-    # Gotta do the readable thing here
-    readable, writable, exceptable = select.select([IRCSOCKET, sys.stdin],[sys.stdout],[])
+
+
+
 
     # THE CODE BELOW STILL HAS TO BE INDENTED ONE TAB TO THE RIGHT
     # Get Commands
