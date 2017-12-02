@@ -194,14 +194,14 @@ if __name == "__main__":
 
     global HOST, PORT, CHANNEL, PHRASE, IRCSOCKET 
     # Get sys.args
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 5:
         print("Wrong number of inputs")
         sys.exit()
 
-    HOST = sys.argv[0]
-    PORT = sys.argv[1]
-    CHANNEL = sys.argv[2]
-    PHRASE = sys.argv[3]
+    HOST = sys.argv[1]
+    PORT = sys.argv[2]
+    CHANNEL = sys.argv[3]
+    PHRASE = sys.argv[4]
 
     if not PORT.isdigit():
         print("Invalid port")
