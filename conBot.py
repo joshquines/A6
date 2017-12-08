@@ -14,7 +14,7 @@ class conBot:
     global HOST, PORT, CHANNEL, PHRASE, IRCSOCKET
 
     # CONTROLLER INFO
-    conNick = "conBot123"
+    conNick = "SLAVE_DRIVER"
     liveConnection = False # Flag to see if controller connection to IRC Server is active
     command = None
 
