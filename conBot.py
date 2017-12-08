@@ -2,14 +2,16 @@ import time
 import socket 
 import sys 
 
+HOST = None
+PORT = None 
+CHANNEL = None 
+PHRASE = None
+IRCSOCKET = None 
+
 
 
 class conBot:
-    HOST = None
-    PORT = None 
-    CHANNEL = None 
-    PHRASE = None
-    IRCSOCKET = None 
+    global HOST, PORT, CHANNEL, PHRASE, IRCSOCKET
 
     # CONTROLLER INFO
     conNick = "conBot123"
@@ -45,11 +47,11 @@ class conBot:
         return
 
     # PingPong protocol
-    def pingPong():
+    def pingPong(self):
         pass 
 
     # Get response from Bot 
-    def getResponse():
+    def getResponse(self):
         try:
             # Get response from bot
             msg = ircSocket.recv(1024).decode('utf-8')
@@ -60,15 +62,16 @@ class conBot:
     # COMMANDS
 
     # Get bot status
-    def botStatus():
+    def botStatus(self):
         # Get bot Nickname and how many there are
         # Append these bots to a list
-        msg = getResponse()
+        msg = self.getResponse()
         if msg != False:
             msg = msg.strip()
             msgLines = msg.split("\n")
             # Get bot names from split lines
             for x in msgLines:
+                # See if there is a private message from Bot Slaves
                 if x.startswith(":SLAVE_PLEB"):
                     botName = x[x.find(":", 1) + 1:].strip()
                     botList.append(botName)
@@ -77,10 +80,10 @@ class conBot:
             botList.clear()
 
     # Tell bot to attack
-    def botAttack(host, port, channel):
-        sendCommand("attack")
+    def botAttack(self, host, port, channel):
+        self.sendCommand("attack")
         # Get bot responses 
-        msg = getResponse()
+        msg = self.getResponse()
         if msg != False:
             try:
                 msg = msg.strip()
@@ -93,24 +96,25 @@ class conBot:
 
 
     # Tell bot to move channel
-    def botMove(host, port, channel):
+    def botMove(self, host, port, channel):
         pass 
 
     # Tell bot to quit
-    def botQuit():
+    def botQuit(self):
+        global IRCSOCKET
         pass 
 
     # Tell bot to shutdown
-    def botShutdown(): 
+    def botShutdown(self): 
         pass
 
     # SEND A PRIVATE MESSAGE/COMMAND TO BOTS
-    def sendCommand(msg):
+    def sendCommand(self, msg):
         toBot = "PRIVMSG " + CHANNEL + " :" + str(msg) + " " + PHRASE + "\n"
         IRCSOCKET.send(toBot.encode())
         return
 
-    def botHandler():
+    def botHandler(self):
         global liveConnection
         while liveConnection:
             # Gotta do the readable thing here
@@ -119,7 +123,7 @@ class conBot:
                 # Start parsing data 
 
                 # If data starts with PONG, send PING 
-                pingPong() 
+                self.pingPong() 
 
                 # elif data in command 
                 # status, attack, move, quit, shutdown 
@@ -140,7 +144,7 @@ class conBot:
             return False 
     """
 
-    def run():
+    def run(self):
         while true:
             
             if not self.liveConnection:
@@ -157,20 +161,20 @@ class conBot:
                 if (len(self.command) == 3):
                     self.botsSuccessful = []
                     self.botsFailed = []
-                    sendCommand(userCommand)
+                    self.sendCommand(userCommand)
                 else:
                     print("Incorrect usage of command: attack <host-name> <port>")
             elif (self.command[0] == "move"):
                 if(len(self.command) == 4):
                     self.botsMoved = []
-                    sendCommand(userCommand)
+                    self.sendCommand(userCommand)
                 else:
                     print("Incorrect usage of command: move <host-name> <port> <channel>")
             elif (self.command[0] == "quit"):
                 sys.exit(0)
             elif (self.command[0] == "shutdown"):
                 self.botsDisconnected = []
-                sendCommand(self.command[0])
+                self.sendCommand(self.command[0])
             
                 
                     

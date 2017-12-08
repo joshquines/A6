@@ -31,7 +31,6 @@ class Bot:
         except:
             print("ERROR: Unable to send messge to channel")
 
-
     # Bot joins a channel
     def joinChannel(self, HOST, PORT, CHANNEL, PHRASE):
         global IRCSOCKET, botNick 
@@ -83,6 +82,7 @@ class Bot:
     # Do pingPong protocol
     def pingPong(self):
         # Send PONG
+        self.sendMsg('PONG')
 
 
     # DO COMMAND ACTIONS HERE ------------------------------------------------------
@@ -158,6 +158,10 @@ class Bot:
         # If data startswith PING, send PONG
         self.pingPong()
 
+        # Keep sending pingPong every 5-10 seconds
+        # Not sure if it stays here or outside handler
+        time.sleep(10)
+
         # elif check if data is a command
         self.getCommand(data)
 
@@ -170,6 +174,7 @@ class Bot:
     """
 
 # Main Start
+bot = Bot()
 if __name__ == "__main__":
 
     # Get args here
@@ -191,15 +196,15 @@ if __name__ == "__main__":
 
     # Attempt connection if bot is not currently online
     if not BOTONLINE:
-        preCheck = joinChannel(HOST, PORT, CHANNEL, PHRASE)
+        preCheck = bot.joinChannel(HOST, PORT, CHANNEL, PHRASE)
 
-    # Terminate if unable to initially join
-    if not preCheck:
-        sys.exit()
+        # Terminate if unable to initially join
+        if not preCheck:
+            sys.exit()
     
     # Run the Bot forever until close
     while not SHUTDOWN:
-        handler()
+        bot.handler()
 
   
 
