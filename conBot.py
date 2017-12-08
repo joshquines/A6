@@ -111,7 +111,7 @@ class conBot:
     # SEND A PRIVATE MESSAGE/COMMAND TO BOTS
     def sendCommand(self, msg):
         toBot = "PRIVMSG " + CHANNEL + " :" + str(msg) + " " + PHRASE + "\n"
-        IRCSOCKET.send(toBot.encode())
+        self.IRCSOCKET.send(toBot.encode())
         return
 
     def botHandler(self):
