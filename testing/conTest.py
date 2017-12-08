@@ -12,7 +12,7 @@ class conBot:
         self.PHRASE = phrase
         self.IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # CONTROLLER INFO
-        self.conNick = "SLAVE_DRIVER"
+        self.conNick = "SLAVE_DRIVER_MASTER"
         self.liveConnection = False # Flag to see if controller connection to IRC Server is active
         self.command = None
 
