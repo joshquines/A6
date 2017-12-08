@@ -198,6 +198,8 @@ if __name == "__main__":
         print("Invalid port.")
         sys.exit() 
     
+    # Check if port is in valid range 
+    
     cbot = conBot()
     cbot.setup(HOST, PORT, CHANNEL, PHRASE)
 
