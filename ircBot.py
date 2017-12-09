@@ -152,18 +152,21 @@ class Bot:
             resp = self.getData()
             print(resp)
 
+
+            for x in self.acceptedCons:
+                self.privateMsg(x, "Move successful - " + str(self.botNick))
             # If it reaches this point, connection is successful. Change globals
             self.HOST = newHost 
             self.PORT = newPort 
             self.CHANNEL = newChannel 
+            
             # Disconnect from old Channel
             try:
                 self.IRCSOCKET.close()
                 self.IRCSOCKET = newSocket 
             except:
                 pass
-            for x in self.acceptedCons:
-                self.privateMsg(x, "Move successful - " + str(self.botNick))
+ 
             return True 
         except:
             print("ERROR: Unable to move to new channel\nBot still in old channel")
