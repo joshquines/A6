@@ -45,11 +45,7 @@ class Bot:
         print(resp)
         return "433" in resp
 
-    # PingPong protocol
-    def pong(self):
-        pass
-
-    # Get response from Controller  
+    # Get Data from IRC Channel. Helper for reader()
     def getData(self):
         return self.IRCSOCKET.recv(2048).decode().strip('\n\r')
 
@@ -64,13 +60,16 @@ class Bot:
         self.sendData("PRIVMSG {} :{}\n" .format(receiver, msg))
 
 
-    # Gets response 
+    # Handle the response from the IRC server
     def handleResponse(self, prefix, message):
         if message == self.PHRASE:
             if prefix not in self.acceptedCons:
                 self.acceptedCons.append(prefix)
         if prefix in self.acceptedCons:
             if message == "status":
+                # This random sleep timer is so the bot doesn't PRIVMSG the controller at exactly the same time
+                # Controller will read multiple bots as a single bot if receives at the same time
+                # It's almost like a scheduler
                 x = random.randint(1,4)
                 y = random.randint(1,5)
                 time.sleep(x/y)
@@ -135,7 +134,6 @@ class Bot:
             #tb = traceback.format_exc()
             #print(tb)
             pass 
-            
     
     # Move Server
     def botMove(self, newHost, newPort, newChannel):
@@ -159,7 +157,7 @@ class Bot:
             self.HOST = newHost 
             self.PORT = newPort 
             self.CHANNEL = newChannel 
-            
+
             # Disconnect from old Channel
             try:
                 self.IRCSOCKET.close()
@@ -175,7 +173,8 @@ class Bot:
             for x in self.acceptedCons:
                 self.privateMsg(x, "Move failed - " + str(self.botNick))
             return False 
-        
+    
+    # Change nickname if there is a same nickname already inside the channel
     def changeNick(self):
         oldName = self.botNick 
         self.botNick = "SLAVE_" + str(random.randrange(10000))
@@ -184,7 +183,7 @@ class Bot:
             self.privateMsg(x, oldName + " has been renamed to " + self.botNick + " due to existing name in channel. Attempting to reconnect")
         return
 
-    # Read
+    # Read message from the channel
     def reader(self):
         try:
             while True:
