@@ -121,21 +121,11 @@ class Bot:
             msg = ("Attack successful - " + self.botNick + " - " + "Success: " + str(self.attackCount) + " Failed: " + str(self.failCount))
             for x in self.acceptedCons:
                 self.privateMsg(x, msg)
-        except:
-            # Send private message that attack failed 
-            """
-            # Do tests to see what caused failure 
-            try:
-                targetSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                targetSocket.connect((host, port))
-            except socket.error as e:
-                reason = str(e)
-            except:
-                reason = "Unknown reason"
-            """
-            print("I AM FAILURE")
-            msg = ("Attack failed - " + self.botNick + " - " + str("sasdf"))
-            #self.failCount = self.failCount + 1
+        except Exception as e:
+            if isinstance(e, socket.gaierror):
+                reason = "no such hostname"
+            msg = ("Attack failed - " + self.botNick + " - " + str(reason))
+            self.failCount = self.failCount + 1
             for x in self.acceptedCons:
                 self.privateMsg(x, msg)
             #tb = traceback.format_exc()
