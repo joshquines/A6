@@ -114,7 +114,6 @@ class Bot:
             targetSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             port = int(port)
             targetSocket.connect((host, port))
-            print(self.botNick)
             self.attackCount = self.attackCount + 1 
             msg = str(self.botNick) + " " + str(self.attackCount) + "\n"
             targetSocket.send(msg.encode())
@@ -154,7 +153,6 @@ class Bot:
             print(resp)
 
             # If it reaches this point, connection is successful. Change globals
-            print("I atleast reached here")
             self.HOST = newHost 
             self.PORT = newPort 
             self.CHANNEL = newChannel 
