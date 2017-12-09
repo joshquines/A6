@@ -173,7 +173,7 @@ class Bot:
             tb = traceback.format_exc()
             print(tb)
             for x in self.acceptedCons:
-                self.privateMsg(x, "Unable to move to new server. Bot still in old channel")
+                self.privateMsg(x, "Move failed - " + str(self.botNick))
             return False 
         
     def changeNick(self):
