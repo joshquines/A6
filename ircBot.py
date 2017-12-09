@@ -19,6 +19,7 @@ class Bot:
         self.liveConnection = False # Flag to see if controller connection to IRC Server is active
         self.command = None
         self.attackCount = 0
+        self.failCount = 1
 
         # BOT INFO - This is from controller
         self.botList = []
@@ -128,12 +129,22 @@ class Bot:
             msg = str(self.botNick) + " " + str(self.attackCount) + "\n"
             targetSocket.send(msg.encode())
             # Send private message that attack was successful
-            msg = (self.botNick) + " has successdfully attacked server. Current count is: " + str(self.attackCount)
+            msg = ("Attack successful - " + self.botNick + " - " + "Success: " + str(self.attackCount) + " Failed: " + str(self.failCount))
             for x in self.acceptedCons:
                 self.privateMsg(x, msg)
         except:
             # Send private message that attack failed 
-            msg = self.botNick + " has failed to attack. Current count is: " + str(self.attackCount)
+
+            # Do tests to see what caused failure 
+            try:
+                targetSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                targetSocket.connect((host, port))
+            except socket.error as e:
+                if 
+
+
+            msg = ("Attack failed - " + self.botNick + " - " + str(reason))
+            self.failCount = self.failCount + 1
             for x in self.acceptedCons:
                 self.privateMsg(x, msg)
             tb = traceback.format_exc()
