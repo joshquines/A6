@@ -25,7 +25,7 @@ class Bot:
         self.liveConnection = False # Flag to see if controller connection to IRC Server is active
         self.command = None
         self.attackCount = 0
-        self.failCount = 1
+        self.failCount = 0
 
         # BOT INFO - This is from controller
         self.botList = []
